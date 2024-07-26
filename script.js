@@ -55,3 +55,21 @@ const gameLoop = () => {
 }
 
 gameLoop();
+
+document.addEventListener('keydown', function (tecla) {
+    switch(tecla.keyCode){
+        case 39:
+            direction = "right";
+            break;
+        case 37:
+            direction = "left";
+            break;
+        case 38:
+            direction = "up";
+            break;
+        case 40:
+            direction = "down";
+            break;
+        
+    }
+})
