@@ -49,7 +49,7 @@ const gameLoop = () => {
     moveSnake();
     drawSnake();
 
-    let loopId = setTimeout(() => {
+    loopId = setTimeout(() => {
         gameLoop();
     }, 300)
 }
