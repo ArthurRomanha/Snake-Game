@@ -1,1 +1,8 @@
-
+body{
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+canvas{
+    background-color: black;
+}
