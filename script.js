@@ -103,10 +103,11 @@ const eatVerification = () => {
 const checkColision = () => {
     const head = snake[snake.length - 1];
     const neckIndex = snake.length - 2;
-    const canvasLimit = canvas.width - size;
+    const canvasLimit = canvas.width;
 
     const wallColision =
-        head.x < 0 || head.x > canvasLimit || head.y < 0 || head.y > canvasLimit;
+        head.x == -30 || head.x == 600 || head.y == -30 || head.y == 600;
+        //lado esquerdo    //lado direito
 
     const selfColision = snake.find((position, index) => {
         return index < neckIndex && position.x == head.x && position.y == head.y;
@@ -133,7 +134,7 @@ const gameLoop = () => {
 
     loopId = setTimeout(() => {
         gameLoop();
-    }, 100)
+    }, 800)
 }
 
 gameLoop();
