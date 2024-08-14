@@ -1,69 +1,134 @@
-const h1 = document.getElementById('score');
-let points = 0;
-const canvas = document.getElementById('campoJogo');
+const divVictory = document.querySelector(".victory");
+const divScreens = document.querySelector(".screens");
+const secondScreen = document.querySelectorAll(".secondScreen");
+const selectDifficult = document.querySelectorAll("#selectDifficult");
+const instructionsDescription = document.querySelector("#instructionsDescription");
+const btnContinue = document.querySelector("#continue");
+const ship = document.querySelector("#ship");
+
+const words = [
+    {
+        "name": "LIGHT",
+        "image": "",
+        "mean": "LUZ",
+        "linkTranslator": ""
+    },
+    {
+        "name": "COUNTRY",
+        "image": "",
+        "mean": "PAÍS",
+        "linkTranslator": ""
+    },
+    {
+        "name": "PICTURE",
+        "image": "",
+        "mean": "FOTO",
+        "linkTranslator": ""
+    },
+    {
+        "name": "WAITER",
+        "image": "",
+        "mean": "GARÇOM",
+        "linkTranslator": ""
+    },
+    {
+        "name": "BROKE",
+        "image": "",
+        "mean": "QUEBRADO",
+        "linkTranslator": ""
+    },
+    {
+        "name": "ACCENT",
+        "image": "",
+        "mean": "SOTAQUE",
+        "linkTranslator": ""
+    },
+    {
+        "name": "BONES",
+        "image": "",
+        "mean": "OSSOS",
+        "linkTranslator": ""
+    },
+    {
+        "name": "CARRY",
+        "image": "",
+        "mean": "CARREGAR",
+        "linkTranslator": ""
+    },
+    {
+        "name": "TEETH",
+        "image": "",
+        "mean": "DENTE",
+        "linkTranslator": ""
+    },
+    {
+        "name": "TENT",
+        "image": "",
+        "mean": "CABANA",
+        "linkTranslator": ""
+    }
+]
+let loopId;
+let screen = 1;
+
+const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
-const size = 30;
 
-const snake = [
-    { x: 180, y: 300 },
-    { x: 150, y: 300 }
-];
+let randomWord = words[(Math.floor(Math.random()*10))];
 
-let direction;
-let loopId;
+let spriteSize = 30;
 
-const randomNumber = () => {
-    return Math.round(Math.random() * 19) * size;//20 serve para controlar a quantidade de colunas contabilizadas
+let xShip = canvas.width / 2 - spriteSize / 2;
+let yShip = canvas.height - spriteSize;
+
+let shoot;
+let widthShoot = 5;
+
+let xShoot = xShip + spriteSize / 2 - widthShoot / 2;
+let yShoot = yShip;
+let shootExist = false;
+const randomXBolide = () => {
+    let x = Math.floor(Math.random()*30);
+    while (!(x>0||x<canvas.width)){
+        x = Math.floor(Math.random()*30);
+    }
+    return x;
+}
+const randomYBolide = () => {    
+    let y = Math.floor(Math.random()*30);
+    while (!(y>0||x<canvas.height)) {
+        y = Math.floor(Math.random()*30);
+    }
+    return y;
 }
 
-const food = {
-    x: randomNumber(),
-    y: randomNumber(),
-    color: "red"
+const drawShoot = () => {
+    if (shootExist == true) {
+        ctx.fillStyle = "white";
+        shoot = ctx.fillRect(xShoot, yShoot, 5, 15);
+        yShoot -= 15;
+    } else {
+        yShoot = yShip;
+        shootExist = true;
+    }
 }
-
-const drawSnake = () => {
-    ctx.fillStyle = "gray";
-    snake.forEach((position, index) => {//funciona basicamente como um for
-        if (index == snake.length - 1) {
-            ctx.fillStyle = "white"
-        }
-        ctx.fillRect(position.x, position.y, size, size);
+// const drawBolides = () => {
+//     for (let letter of randomWord.name){
+//         ctx.drawImage(document.getElementById(`meteor${letter}`, randomXBolide(), randomYBolide()));
+//     }
+// }
+// drawBolides();
+const winGame = () => {
+    fetch("dados.JSON").then((response) => {
+        response.json().then((object) => {
+            object.words.map((words) => {
+                divVictory.innerHTML += `<h1>${words.name}</h1>
+                                        <h2>${words.mean}</h2>`;
+            })
+        })
     })
 }
-
-const moveSnake = () => {
-    if (!direction) return;
-    const head = snake[snake.length - 1];
-
-    snake.shift();//apaga o primeiro elemento do array
-
-    switch (direction) {
-        case "right":
-            snake.push({ x: head.x + size, y: head.y });
-            break;
-        case "left":
-            snake.push({ x: head.x - size, y: head.y });
-            break;
-        case "up":
-            snake.push({ x: head.x, y: head.y - size });
-            break;
-        case "down":
-            snake.push({ x: head.x, y: head.y + size });
-            break;
-    }
-
-}
-
-const drawFood = () => {
-    ctx.fillStyle = food.color;
-    ctx.shadowColor = food.color;
-    ctx.shadowBlur = 10;
-    ctx.fillRect(food.x, food.y, size, size);
-    ctx.shadowBlur = 0;
-}
-
 const drawGrid = () => {
     ctx.lineWidth = 1
     ctx.strokeStyle = 'gray';
@@ -71,94 +136,74 @@ const drawGrid = () => {
     for (let i = 0; i < canvas.width + 30; i += 30) {//linhas verticais
         ctx.beginPath();
         ctx.lineTo(i, 0)
-        ctx.lineTo(i, 600)
+        ctx.lineTo(i, canvas.height)
         ctx.stroke()
 
         ctx.beginPath();
         ctx.lineTo(0, i);
-        ctx.lineTo(600, i);
+        ctx.lineTo(canvas.width, i);
         ctx.stroke();
     }
 }
-
-const eatVerification = () => {
-    const head = snake[snake.length - 1];
-    if (head.x == food.x && head.y == food.y) {
-        snake.push(head);
-
-        let x = randomNumber();
-        let y = randomNumber();
-
-        while (snake.find((position) => position.x == x && position.y == y)) {
-            x = randomNumber();
-            y = randomNumber();
-        }
-        food.x = x;
-        food.y = y;
-        points += 10;
-        h1.innerText = points;
-    }
+const initSprites = () => {
+    divScreens.style.display = "none";
+    canvas.style.display = "block";
+    ctx.drawImage(ship, xShip, yShip, 30, 30);
 }
-
-const checkColision = () => {
-    const head = snake[snake.length - 1];
-    const neckIndex = snake.length - 2;
-    const canvasLimit = canvas.width;
-
-    const wallColision =
-        head.x == -30 || head.x == 600 || head.y == -30 || head.y == 600;
-        //lado esquerdo    //lado direito
-
-    const selfColision = snake.find((position, index) => {
-        return index < neckIndex && position.x == head.x && position.y == head.y;
-    })
-
-    if (wallColision || selfColision) {
-        gameOver();
-    }
-}
-
-const gameOver = () => {
-    window.location.reload();
-}
-const gameLoop = () => {
+const game = () => {
     clearInterval(loopId);
 
-    ctx.clearRect(0, 0, 600, 600);
-    moveSnake();
-    drawSnake();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // randomWord();
+    initSprites();
     drawGrid();
-    drawFood();
-    eatVerification();
-    checkColision();
+
+    if (yShoot > 0) {
+        drawShoot();
+    } else {
+        shootExist = false;
+    }
 
     loopId = setTimeout(() => {
-        gameLoop();
-    }, 80)
+        game();
+    }, 100);
 }
+const nextScreen = () => {
+    switch (screen) {
+        case 1:
+            secondScreen.forEach(element => {
+                element.style.visibility = "visible";
+            })
+            screen++;
+            break;
+        case 2:
+            instructionsDescription.style.visibility = "hidden";
+            btnContinue.style.visibility = "hidden"
 
-gameLoop();
-
+            selectDifficult.forEach(element => {
+                element.style.visibility = "visible";
+            });
+            game();
+            break;
+    }
+}
 document.addEventListener('keydown', function (tecla) {
     switch (tecla.keyCode) {
-        case 39:
-            if (direction != "left") {
-                direction = "right";
+        case 39://right
+            if (xShip < canvas.width - spriteSize) {
+                xShip += 30;
             }
             break;
-        case 37:
-            if (direction != "right") {
-                direction = "left";
-            }
+        case 37://left
+            if (xShip > 0) { xShip -= 30; }
             break;
-        case 38:
-            if (direction != "down") {
-                direction = "up";
-            }
-            break;
-        case 40:
-            if (direction != "up") {
-                direction = "down";
+        case 32:
+            if (shootExist == false) {
+                xShoot = xShoot = xShip + spriteSize / 2 - widthShoot / 2;;
+                yShoot = yShip;
+                shootExist = true;
+                drawShoot();
             }
             break;
     }
